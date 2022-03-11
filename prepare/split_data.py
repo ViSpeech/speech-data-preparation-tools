@@ -11,6 +11,9 @@ logging.getLogger().setLevel(logging.INFO)
 def split_on_silence(
         path_audio,
         out_folder="data/data_split",
+        min_silence_len=500,
+        silence_thresh=-40,
+        pad_silence=150,
         lower_bound=6000,
         upper_bound=12000,
         rand_bound=0.9):
@@ -19,7 +22,7 @@ def split_on_silence(
 
     logging.info(f"Detecting nonsilent...")
     lst_nonsilent = detect_nonsilent(
-        sound, min_silence_len=500, silence_thresh=-40)
+        sound, min_silence_len=min_silence_len, silence_thresh=silence_thresh)
 
     start_time = 0
     end_time = 0
@@ -37,7 +40,7 @@ def split_on_silence(
                 or random.uniform(0, 1) > rand_bound \
                 or (idx + 1 < len(lst_nonsilent) and lst_nonsilent[idx + 1][1] - start_time > upper_bound):
             i += 1
-            sound[max(0, start_time - 100):min(end_time + 100, len(sound))] \
+            sound[max(0, start_time - pad_silence):min(end_time + pad_silence, len(sound))] \
                 .export(os.path.join(out_folder, f'chunk_{i}.mp3'), format="mp3")
             check = True
         else:
